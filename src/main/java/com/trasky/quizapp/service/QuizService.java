@@ -40,29 +40,39 @@ public class QuizService {
     }
 
     public ResponseEntity<List<QuestionWapper>> getQuizQuestion(int id) {
-        
-        Optional<Quiz>quiz=quizrepo.findById(id);
+        try {
+            Optional<Quiz>quiz=quizrepo.findById(id);
         List<Question> questionFromDB=quiz.get().getQuestion();
         List<QuestionWapper> questionWappersForUser=new ArrayList<>();  
         for (Question q : questionFromDB) {
             QuestionWapper qw=new QuestionWapper(q.getId(),q.getQuestionTitle(),q.getOption1(),q.getOption2(),q.getOption3(),q.getOption4());
             questionWappersForUser.add(qw);
         }
-
         return new ResponseEntity<>(questionWappersForUser,HttpStatus.OK);
+
+        } catch (Exception e) {
+            e.getStackTrace();    
+        }
+        return new ResponseEntity<>(new ArrayList<>(),HttpStatus.BAD_REQUEST);
+        
     }
 
     public ResponseEntity<Integer> calculateResult(Integer id, List<Response> responses) {
-        Quiz quiz=quizrepo.findById(id).get();    
-        List<Question> questions=quiz.getQuestion();
-        int i=0;
-        int right=0;
-        for(Response response:responses){
-            if(response.getResponse().equals(questions.get(i).getRightAnswer())){
-                right++;
+        try {
+            Quiz quiz=quizrepo.findById(id).get();    
+            List<Question> questions=quiz.getQuestion();
+            int i=0;
+            int right=0;
+            for(Response response:responses){
+                if(response.getResponse().equals(questions.get(i).getRightAnswer())){
+                    right++;
+                }
+                i++;
             }
-            i++;
+            return new ResponseEntity<>(right,HttpStatus.OK);
+        } catch (Exception e) {
+            e.getStackTrace();
         }
-        return new ResponseEntity<>(right,HttpStatus.OK);
+        return new ResponseEntity<>(-1,HttpStatus.BAD_REQUEST);
     }
 }
